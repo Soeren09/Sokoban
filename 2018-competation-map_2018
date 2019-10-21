@@ -1,0 +1,16 @@
+
+XXXXXXX
+XG....X
+X.....X
+XGXG.GX
+XXXX.XX
+X.J...X
+X.J...X
+X..XXXX
+X.J.JMX
+X.....X
+X...XXX
+XXXXX
+
+
+(.: walkable positions; X: wall; M: start position of robot; J: start positions of cans; G: Goal positions of cans.)
