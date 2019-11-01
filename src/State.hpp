@@ -10,6 +10,7 @@ public:
     State(Position *player, std::vector<Position*> boxes);
     int hashCode();
     bool equal(State * s);
+    std::vector<Position*> getBoxes();
     ~State();
 
 private:
@@ -45,6 +46,11 @@ bool State::equal(State * s)
             return true;
         }
     return false;
+}
+
+std::vector<Position*> State::getBoxes()
+{
+    return boxes;
 }
 
 State::~State()
