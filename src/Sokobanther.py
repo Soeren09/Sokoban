@@ -80,13 +80,13 @@ def astar(dynamicdata, staticdata, playerx, playery):
     h = manhattan_dist_metric(dynamicdata, staticdata)
     #manhattan dist from dynamicdata and staticdata
     cost = g+h
-    open = deque([(cost , dynamicdata, "", playerx, playery)])
-
+    open = []
+    open.append((cost , dynamicdata, "", playerx, playery))
     visited = set([dynamicdata])
     actions = ((0, -1, 'u', 'U'), (1, 0, 'r', 'R'), (0, 1, 'd', 'D'), (-1, 0, 'l', 'L'))
     lnrows = nrows
     while open:
-        cost, cur, csol, x, y = open.popleft() #data.sort(key=lambda tup: tup[1])
+        cost, cur, csol, x, y = open.pop(0) #data.sort(key=lambda tup: tup[1])
         g = g + 1
         if (is_solved(cur)):
             return csol
@@ -97,8 +97,15 @@ def astar(dynamicdata, staticdata, playerx, playery):
             if temp[(y+dy) * lnrows + x+dx] == '*': #if action moves player to box
                 temp = push(x,y,dx,dy,temp)
                 if temp and temp not in visited: #if action was valid AND temp is a so far not visited state
-                    cost = g + len(solve(temp, staticdata, x+dx, y+dy))
-                    open.append((cost, temp, csol + action[3], x+dx, y+dy)) # add to open list
+                    cost = g + manhattan_dist_metric(temp, staticdata)
+                    added = False
+                    for indx, (ci, curi, csoli, xi, yi) in enumerate(open):
+                        if cost < ci:
+                            added = True
+                            open.insert(indx, (cost, temp, csol + action[3], x+dx, y+dy))
+                            break
+                    if not added:
+                        open.append((cost, temp, csol + action[3], x+dx, y+dy))
                     visited.add(temp)
             else:
                 if staticdata[(y+dy) * lnrows + x+dx] == '#' or temp[(y+dy) * lnrows + x+dx] != ' ': #if actions leads to obstacle
@@ -112,7 +119,14 @@ def astar(dynamicdata, staticdata, playerx, playery):
                 if temp not in visited: #if new move have not been visited
                     if ( is_solved(temp) ):
                         return csol+action[2] # if solved - return with new action (safety check - should be ok with check in box push)
-                    open.append((temp, csol + action[2], x+dx, y+dy))
+                    added = False
+                    for indx, (ci, curi, csoli, xi, yi) in enumerate(open):
+                        if cost < ci:
+                            added = True
+                            open.insert(indx, (cost, temp, csol + action[2], x+dx, y+dy))
+                            break
+                    if not added:
+                        open.append((cost, temp, csol + action[2], x+dx, y+dy))
                     visited.add(temp)
     return "No solution" # if solution have not been found -- return (open list is empty and no solution found)    
 
@@ -130,8 +144,6 @@ def manhattan_dist_metric(dynamicdata, staticdata, stackable=True):
             row = i // nrows
             goals.append((row, col))
     box2GoalDistSum = 0
-    print(boxes)
-    print(goals)
     for (boxrow, boxcol) in boxes:
         minDist = 99999999
         minGoal = (0,0)
@@ -173,9 +185,9 @@ lastYearMap = """\
 #####"""
 
 init(lastYearMap)
-# bfs_heuristic returns length
+
 print(len(solve(dynamicdata, staticdata, playerx, playery)))
 print(solve(dynamicdata, staticdata, playerx, playery))
 
 
-print(manhattan_dist_metric(dynamicdata, staticdata))
+#print(manhattan_dist_metric(dynamicdata, staticdata))
