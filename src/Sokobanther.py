@@ -39,7 +39,7 @@ def is_solved(data): # check if data string is a solution
             return False # if just one box is not located in a goal
     return True # can only return true if all goals is occupied by a box
 
-def solve_new(data, sata, px, py, bfs = True):
+def solve(data, sata, px, py, bfs = True):
     open = deque([(data, "", px, py)])
     visited = set([data])
     actions = ((0, -1, 'u', 'U'), (1, 0, 'r', 'R'), (0, 1, 'd', 'D'), (-1, 0, 'l', 'L'))
@@ -75,27 +75,30 @@ def solve_new(data, sata, px, py, bfs = True):
                     visited.add(temp)
     return "No solution" # if solution have not been found -- return (open list is empty and no solution found)
 
-def solve(bfs=True): # input bfs or dfs
-    open = deque([(dynamicdata, "", playerx, playery)]) # initialise open list with initial map and empty action list
-    visited = set([dynamicdata])  # add initial map to visited list
-    dirs = ((0, -1, 'u', 'U'), (1, 0, 'r', 'R'), (0, 1, 'd', 'D'), (-1, 0, 'l', 'L')) # action commands: (dx, dy, pl, bo)
+def astar(dynamicdata, staticdata, playerx, playery):
+    g = 0
+    h = manhattan_dist_metric(dynamicdata, staticdata)
+    #manhattan dist from dynamicdata and staticdata
+    cost = g+h
+    open = deque([(cost , dynamicdata, "", playerx, playery)])
+
+    visited = set([dynamicdata])
+    actions = ((0, -1, 'u', 'U'), (1, 0, 'r', 'R'), (0, 1, 'd', 'D'), (-1, 0, 'l', 'L'))
     lnrows = nrows
-    while open: #while open list is not empty
-        cur, csol, x, y = open.popleft() #csol is current list of action
-
-        for di in dirs: #check all actions for state
+    while open:
+        cost, cur, csol, x, y = open.popleft() #data.sort(key=lambda tup: tup[1])
+        g = g + 1
+        if (is_solved(cur)):
+            return csol
+        
+        for action in actions:
             temp = cur
-            dx, dy = di[0], di[1]
-
+            dx, dy = action[0], action[1]
             if temp[(y+dy) * lnrows + x+dx] == '*': #if action moves player to box
                 temp = push(x,y,dx,dy,temp)
                 if temp and temp not in visited: #if action was valid AND temp is a so far not visited state
-                    if (is_solved(temp)):
-                        return csol + di[3] # csol is current string of actions
-                    if bfs:
-                        open.append((temp, csol + di[3], x+dx, y+dy)) # add to open list with push..... bfs: .append,    dfs: .appendleft
-                    else:
-                        open.appendleft((temp, csol + di[3], x+dx, y+dy))
+                    cost = g + len(solve(temp, staticdata, x+dx, y+dy))
+                    open.append((cost, temp, csol + action[3], x+dx, y+dy)) # add to open list
                     visited.add(temp)
             else:
                 if staticdata[(y+dy) * lnrows + x+dx] == '#' or temp[(y+dy) * lnrows + x+dx] != ' ': #if actions leads to obstacle
@@ -108,10 +111,42 @@ def solve(bfs=True): # input bfs or dfs
 
                 if temp not in visited: #if new move have not been visited
                     if ( is_solved(temp) ):
-                        return csol+di[2] # if solved - return with new action (safety check - should be ok with check in box push)
-                    open.append((temp, csol + di[2], x+dx, y+dy))
+                        return csol+action[2] # if solved - return with new action (safety check - should be ok with check in box push)
+                    open.append((temp, csol + action[2], x+dx, y+dy))
                     visited.add(temp)
-    return "No solution" # if solution have not been found -- return (open list is empty and no solution found)
+    return "No solution" # if solution have not been found -- return (open list is empty and no solution found)    
+
+def manhattan_dist_metric(dynamicdata, staticdata, stackable=True):
+    boxes = []
+    goals = []
+    for i, ch in enumerate(dynamicdata):
+        if (ch == '*'):
+            col = i % nrows
+            row = i // nrows
+            boxes.append((row, col))
+    for i, ch in enumerate(staticdata):
+        if (ch == '.'):
+            col = i % nrows
+            row = i // nrows
+            goals.append((row, col))
+    box2GoalDistSum = 0
+    print(boxes)
+    print(goals)
+    for (boxrow, boxcol) in boxes:
+        minDist = 99999999
+        minGoal = (0,0)
+        for (goalrow, goalcol) in goals:
+            if stackable:
+                curDist = abs(goalrow-boxrow) + abs(goalcol-boxcol)
+                if ( curDist < minDist ):
+                    minDist = curDist
+                    minGoal = (goalrow, goalcol)
+            else:
+                pass
+                #write routine to handle non stackable boxes
+        box2GoalDistSum = box2GoalDistSum + minDist
+    return box2GoalDistSum
+
 
 map = """\
 #######
@@ -139,5 +174,8 @@ lastYearMap = """\
 
 init(lastYearMap)
 # bfs_heuristic returns length
-print(len(solve2(dynamicdata, staticdata, playerx, playery)))
-print(solve())
+print(len(solve(dynamicdata, staticdata, playerx, playery)))
+print(solve(dynamicdata, staticdata, playerx, playery))
+
+
+print(manhattan_dist_metric(dynamicdata, staticdata))
