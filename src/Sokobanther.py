@@ -185,9 +185,9 @@ lastYearMap = """\
 #####"""
 
 init(lastYearMap)
-
-print(len(solve(dynamicdata, staticdata, playerx, playery)))
-print(solve(dynamicdata, staticdata, playerx, playery))
+solution = solve(dynamicdata, staticdata, playerx, playery)
+print(len(solution))
+print(solution)
 
 
 #print(manhattan_dist_metric(dynamicdata, staticdata))
