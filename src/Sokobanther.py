@@ -160,6 +160,20 @@ def manhattan_dist_metric(dynamicdata, staticdata, stackable=True):
     return box2GoalDistSum
 
 
+# goal = G = .
+# box = J = $
+# player = M = @
+
+map_2019 = """\
+############
+##   #     #
+##   # ..  #
+##$$$ #..###
+# $    @####
+#   #   ####
+############
+"""
+
 map = """\
 #######
 #     #
@@ -184,10 +198,61 @@ lastYearMap = """\
 #   ###
 #####"""
 
-init(lastYearMap)
-solution = solve(dynamicdata, staticdata, playerx, playery)
-print(len(solution))
+#init(map_2019)
+#solution = solve(dynamicdata, staticdata, playerx, playery)
+#print(len(solution))
+#print(solution)
+
+solution = "llllUddlluRRRRRdrUUruulldRRdldlluLuulldRurDDullDRdRRRdrUUruurrdLulDulldRddlllluurDldRRRdrUUdlllldlluRRRRRdrU"
+# error in code below -> correct it.
 print(solution)
+def translateCommand(commands): # no predined
+    prev_is_upper = False
+    prev_command = 'N'
+    translated = ""
+    for i in range(len(commands)):
+        if ( ord(commands[i]) >= 65 and ord(commands[i]) <= 90 ):
+            if ( prev_is_upper and prev_command == commands[i] ): # upper and equal to last -> for consecutive uppers add 1
+                translated += commands[i].lower()
+                prev_is_upper = True
+                prev_command = commands[i]
+            else: ## Upper not equal to last -> first upper add 2
+                translated += commands[i].lower()
+                translated += commands[i].lower()
+                prev_is_upper = True
+                prev_command = commands[i]
+            # check if current is last push -> add x (reverse)
+            if ( i+1 < len(commands) and commands[i+1] != prev_command):
+                translated += 'x'
+        else: # not upper
+            translated += commands[i]
+            prev_is_upper = False
+            prev_command = 'N'
+    return translated
 
+def translateCommandPreDef(commands): # using predefined push length
+    prev_is_upper = False
+    prev_command = 'N'
+    translated = ""
+    for i in range(len(commands)):
+        if ( ord(commands[i]) >= 65 and ord(commands[i]) <= 90 ):
+            if ( prev_is_upper and prev_command == commands[i] ): # upper and equal to last -> for consecutive uppers add 1
+                translated += commands[i]
+                prev_is_upper = True
+                prev_command = commands[i]
+            else: ## Upper not equal to last -> first upper add 2
+                translated += commands[i].lower()
+                translated += commands[i]
+                prev_is_upper = True
+                prev_command = commands[i]
+            # check if current is last push -> add x (reverse)
+            if ( i+1 < len(commands) and commands[i+1] != prev_command):
+                translated += 'x'
+        else: # not upper
+            translated += commands[i]
+            prev_is_upper = False
+            prev_command = 'N'
+    return translated
 
+print(translateCommandPreDef(solution))
 #print(manhattan_dist_metric(dynamicdata, staticdata))

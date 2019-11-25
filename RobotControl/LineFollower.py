@@ -15,6 +15,8 @@ RightSensor = ColorSensor(INPUT_4)
 LeftMotor = LargeMotor(LEFT_MOTOR)
 RightMotor = LargeMotor(RIGHT_MOTOR)
 
+tankControl = MoveTank(LEFT_MOTOR, RIGHT_MOTOR)
+
 def TurnRight(speed=20, difference=5):
     LeftMotor = Motor(LEFT_MOTOR)
     RightMotor = Motor(RIGHT_MOTOR)
@@ -24,8 +26,8 @@ def TurnRight(speed=20, difference=5):
     RightMotor.command = "run-direct"
 
 def StopMotors():
-    LeftMotor.stop_action = Motor.STOP_ACTION_HOLD
-    RightMotor.stop_action = Motor.STOP_ACTION_HOLD
+    LeftMotor.stop_action = Motor.STOP_ACTION_HOLD     # HOLD
+    RightMotor.stop_action = Motor.STOP_ACTION_HOLD    # HOLD
     LeftMotor.command = Motor.COMMAND_STOP
     RightMotor.command = Motor.COMMAND_STOP
     
@@ -41,7 +43,6 @@ def TurnOnSpot(degree):
 
 
 def DriveRotations(rot=1):
-    tankControl = MoveTank(LEFT_MOTOR, RIGHT_MOTOR)
     tankControl.on_for_rotations(SpeedPercent(20), SpeedPercent(20), rot)
 
 def SimpleFollower(SAFE_MODE=True):    # Kører på venstre side af stregen: én sensor i midten.
@@ -58,6 +59,8 @@ def SimpleFollower(SAFE_MODE=True):    # Kører på venstre side af stregen: én
         RightMotor.duty_cycle_sp = BASE_SPEED - DIFFERENCE
     LeftMotor.command = Motor.COMMAND_RUN_DIRECT
     RightMotor.command = Motor.COMMAND_RUN_DIRECT
+  
+    
 
 def CalibrateSensors():
     pass
@@ -105,4 +108,24 @@ def BounceFollow(BINARY_CONTROL=False, max_speed=40, speed_reduction = 30):
     # Control motor speed
     LeftMotor.command = Motor.COMMAND_RUN_DIRECT
     RightMotor.command = Motor.COMMAND_RUN_DIRECT
+    
+def GoBackwards(max_speed=-40, speed_reduction = 30):
+    #tankControl.on_for_rotations(SpeedPercent(20), SpeedPercent(20), -1)
+
+    #LeftIntensity = LeftSensor.reflected_light_intensity
+    #RightIntensity = RightSensor.reflected_light_intensity
+
+    #if ( LeftIntensity > 60 and RightIntensity > 60 ):
+    #    LeftIntensity = 60
+    #    RightIntensity = 60
+
+    #LeftMotor.duty_cycle_sp = max_speed - (1 - LeftIntensity/(LeftIntensity + RightIntensity)) * speed_reduction
+    #RightMotor.duty_cycle_sp = max_speed - (1 - RightIntensity/(LeftIntensity + RightIntensity)) * speed_reduction
+
+    LeftMotor.duty_cycle_sp = max_speed
+    RightMotor.duty_cycle_sp = max_speed
+
+    LeftMotor.command = Motor.COMMAND_RUN_DIRECT
+    RightMotor.command = Motor.COMMAND_RUN_DIRECT
+
     

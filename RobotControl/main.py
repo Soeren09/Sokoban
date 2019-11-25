@@ -5,7 +5,6 @@ from ev3dev2.sound import Sound
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
 from ev3dev2.sensor.lego import ColorSensor, LightSensor#, GyroSensor
 
-
 def Turn(TurnChar, orientation):
     if ( TurnChar == 'l' ):
         TurnDegree = -90
@@ -72,7 +71,9 @@ TurnState = False
 FRONT = 0
 RIGHT = 1
 LEFT = 2
-commands = "uuuurrrrddddlllluuuurdrurrdddd"  # Læs fra Planner   
+solution = "lllluuxddllurrrrrrxdruuuxruulldrrrxdldllullxuulldrrxurdddxullddxrrxdrrrrxdruuuxruurrdllxulddxulldrrxddlllluurddxldrrrrxdruuuxdlllldllurrrrrrxdruu"  # Læs fra Planner   
+solution_pre_def = "lllluUxddllurRRRRRxdruUUxruulldrRRxdldllulLxuulldrRxurdDDxulldDxrRxdrRRRxdruUUxruurrdlLxuldDxulldrRxddlllluurdDxldrRRRxdruUUxdlllldllurRRRRRxdruU"
+commands = "uUxlurRxurdDxrdlLxdl"
 orientation = 'u'   # -> orientation == commands[i]
 n = len(commands)
 i = 0
@@ -94,18 +95,36 @@ while i < n:
     # Stop motors and move to next command if a junction has been detected
     if FLAG_RE and not(ignoreShift):
         i = i + 1
-        if (command != commands[i]): # previos != current (command)
+        if ( i >= len(commands) ):
             LineFollower.StopMotors()
-            LineFollower.DriveRotations(rot=0.25) # kør en lille smule -> robotten står på junction
+            while True:
+                sound.beep()
+
+        if (command != commands[i] and command != commands[i].lower()): # previous != current (command)
+            LineFollower.StopMotors()
+            if ( commands[i] != 'x' ):
+                LineFollower.DriveRotations(rot=0.25) # kør en lille smule -> robotten står på junction
             substate = 0
         sound.beep()
 
     
     # Read next commmand
     command = commands[i]
-    if ( command == orientation ):
+
+    if ( ord(command) >= 65 and ord(command) <= 90 ):
+        if ( command.lower() == orientation ):
+            LineFollower.DriveRotations(rot=1)
+            i = i + 1 # It will not see a junction -> increment
+        else:
+            TurnChar = TurnDirection(orientation, command.lower())
+            if ( TurnChar == 'o' ):
+                print("ERROR: invalid turn char")
+            orientation = Turn(TurnChar, orientation)
+    elif ( command == orientation and ord(command) > 90 ):
         # Kør lige ud
         LineFollower.BounceFollow(BINARY_CONTROL=False, max_speed=80, speed_reduction = 30) # max_speed = 50
+    elif( command == 'x' ): # Go backwards
+        LineFollower.GoBackwards()
     else:
         # Drej indtil den vender i korrekt retning
         TurnChar = TurnDirection(orientation, command)
@@ -142,9 +161,3 @@ while i < n:
 
     # load shift reg val into previous shift reg val
 
-
-
-# Lav funktion som tager string: "uuUdLrr" -> "uuuuddllrrr"
-def MapBigPushChars(commands):
-    # do something with commands to remove big chars.
-    return commands
