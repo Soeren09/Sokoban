@@ -17,20 +17,14 @@ RightMotor = LargeMotor(RIGHT_MOTOR)
 
 tankControl = MoveTank(LEFT_MOTOR, RIGHT_MOTOR)
 
-def TurnRight(speed=20, difference=5):
-    LeftMotor = Motor(LEFT_MOTOR)
-    RightMotor = Motor(RIGHT_MOTOR)
-    LeftMotor.duty_cycle_sp = speed
-    RightMotor.duty_cycle_sp = -(speed - difference)
-    LeftMotor.command = "run-direct"
-    RightMotor.command = "run-direct"
+
 
 def StopMotors():
     LeftMotor.stop_action = Motor.STOP_ACTION_HOLD     # HOLD
     RightMotor.stop_action = Motor.STOP_ACTION_HOLD    # HOLD
     LeftMotor.command = Motor.COMMAND_STOP
     RightMotor.command = Motor.COMMAND_STOP
-    
+
 
 def TurnOnSpot(degree):
     WHEEL_DISTANCE = 85 # 115
@@ -42,25 +36,52 @@ def TurnOnSpot(degree):
     #DiffControl.on_arc_right(SpeedPercent(15), 150, 70000)
 
 
+def TurnOnSpotSensor(TurnChar, TurnSpeed = 60):
+    LeftMotor = Motor(LEFT_MOTOR)
+    RightMotor = Motor(RIGHT_MOTOR)
+        # WHITE = 100
+        # BLACK = 0
+    LeftIntensity = LeftSensor.reflected_light_intensity
+    RightIntensity = RightSensor.reflected_light_intensity
+
+
+    if TurnChar == 'r': # Turn right
+        LeftMotor.duty_cycle_sp = TurnSpeed
+        RightMotor.duty_cycle_sp = -TurnSpeed
+        LeftMotor.command = "run-direct"
+        RightMotor.command = "run-direct"
+
+        while ( LeftIntensity > 20  ):  
+            LeftIntensity = LeftSensor.reflected_light_intensity
+
+        while ( RightIntensity > 20  ):  
+            RightIntensity = RightSensor.reflected_light_intensity
+            
+        while ( LeftIntensity > 30  ):  
+            LeftIntensity = LeftSensor.reflected_light_intensity
+
+    
+    if TurnChar == 'l': # Turn left
+        LeftMotor.duty_cycle_sp = -TurnSpeed
+        RightMotor.duty_cycle_sp = TurnSpeed
+        LeftMotor.command = "run-direct"
+        RightMotor.command = "run-direct"
+
+        while ( RightIntensity > 20  ):  
+            RightIntensity = RightSensor.reflected_light_intensity
+
+        while ( LeftIntensity > 20  ):  
+            LeftIntensity = LeftSensor.reflected_light_intensity
+            
+        while ( RightIntensity > 30  ):  
+            RightIntensity = RightSensor.reflected_light_intensity
+
+    #topMotors()
+
+
 def DriveRotations(rot=1):
     tankControl.on_for_rotations(SpeedPercent(20), SpeedPercent(20), rot)
 
-def SimpleFollower(SAFE_MODE=True):    # Kører på venstre side af stregen: én sensor i midten.
-    BASE_SPEED = 40 + 20*int(not(SAFE_MODE)) # 60  40       40 (kan tage blødt sving)
-    DIFFERENCE = 5  + 3 *int(not(SAFE_MODE)) # 8   5       35
-    cs = ColorSensor(INPUT_1)
-    LeftMotor = Motor(LEFT_MOTOR)
-    RightMotor = Motor(RIGHT_MOTOR)
-    if (cs.color == ColorSensor.COLOR_BLACK):
-        LeftMotor.duty_cycle_sp = BASE_SPEED - DIFFERENCE
-        RightMotor.duty_cycle_sp = BASE_SPEED
-    else:
-        LeftMotor.duty_cycle_sp = BASE_SPEED
-        RightMotor.duty_cycle_sp = BASE_SPEED - DIFFERENCE
-    LeftMotor.command = Motor.COMMAND_RUN_DIRECT
-    RightMotor.command = Motor.COMMAND_RUN_DIRECT
-  
-    
 
 def CalibrateSensors():
     pass
@@ -68,11 +89,6 @@ def CalibrateSensors():
 def DetectJunctionDouble(ColorSensorLeft, ColorSensorRight, threshold=30):
     # Both sensors see black?
     if (ColorSensorLeft.reflected_light_intensity < threshold and ColorSensorRight.reflected_light_intensity < threshold): # 30 is "ok"
-        return True
-    return False
-
-def DetectJunctionSingle(JunctionColorSensor, threshold = 20):
-    if ( JunctionColorSensor.reflected_light_intensity < threshold ):
         return True
     return False
 
@@ -128,4 +144,43 @@ def GoBackwards(max_speed=-40, speed_reduction = 30):
     LeftMotor.command = Motor.COMMAND_RUN_DIRECT
     RightMotor.command = Motor.COMMAND_RUN_DIRECT
 
-    
+
+
+## Not used 
+
+
+# def DetectJunctionSingle(JunctionColorSensor, threshold = 20):
+#     if ( JunctionColorSensor.reflected_light_intensity < threshold ):
+#         return True
+#     return False
+
+# def TurnRight(speed=20, difference=5):
+#     LeftMotor = Motor(LEFT_MOTOR)
+#     RightMotor = Motor(RIGHT_MOTOR)
+#     LeftMotor.duty_cycle_sp = speed
+#     RightMotor.duty_cycle_sp = -(speed - difference)
+#     LeftMotor.command = "run-direct"
+#     RightMotor.command = "run-direct"
+
+# def SimpleFollower(SAFE_MODE=True):    # Kører på venstre side af stregen: én sensor i midten.
+#     BASE_SPEED = 40 + 20*int(not(SAFE_MODE)) # 60  40       40 (kan tage blødt sving)
+#     DIFFERENCE = 5  + 3 *int(not(SAFE_MODE)) # 8   5       35
+#     cs = ColorSensor(INPUT_1)
+#     LeftMotor = Motor(LEFT_MOTOR)
+#     RightMotor = Motor(RIGHT_MOTOR)
+#     if (cs.color == ColorSensor.COLOR_BLACK):
+#         LeftMotor.duty_cycle_sp = BASE_SPEED - DIFFERENCE
+#         RightMotor.duty_cycle_sp = BASE_SPEED
+#     else:
+#         LeftMotor.duty_cycle_sp = BASE_SPEED
+#         RightMotor.duty_cycle_sp = BASE_SPEED - DIFFERENCE
+#     LeftMotor.command = Motor.COMMAND_RUN_DIRECT
+#     RightMotor.command = Motor.COMMAND_RUN_DIRECT
+
+
+
+
+
+
+
+

@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
+
 import time
 import LineFollower
+
+
 from ev3dev2.sound import Sound
 from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
 from ev3dev2.sensor.lego import ColorSensor, LightSensor#, GyroSensor
 
-def Turn(TurnChar, orientation):
+def Turn(TurnChar, orientation):    # Fixed turn
     if ( TurnChar == 'l' ):
         TurnDegree = -90
     elif ( TurnChar == 'r' ):
         TurnDegree = 90
-    LineFollower.TurnOnSpot(TurnDegree)
-    # wait for TurnOnSpot
-    #time.sleep(2)    # indstil denne eller lav noget der kan se hvornår LineFollower.TurnOnSpot er færdig med at dreje.    
+    LineFollower.TurnOnSpot(TurnDegree)   
 
     RotationChars = "urdl"
     if ( TurnChar == 'r' ):
@@ -20,6 +21,18 @@ def Turn(TurnChar, orientation):
     elif ( TurnChar == 'l'  ):
         orientation = RotationChars[(RotationChars.find(orientation) + len(RotationChars) - 1) % len(RotationChars)]
     return orientation
+
+def Turn2(TurnChar, orientation):   # Line detect turn
+    LineFollower.TurnOnSpotSensor(TurnChar)   
+
+    RotationChars = "urdl"
+    if ( TurnChar == 'r' ):
+        orientation = RotationChars[(RotationChars.find(orientation) + 1) % len(RotationChars)]
+    elif ( TurnChar == 'l'  ):
+        orientation = RotationChars[(RotationChars.find(orientation) + len(RotationChars) - 1) % len(RotationChars)]
+    return orientation
+
+
 
 
 def TurnDirection(orientation, command):
@@ -62,18 +75,19 @@ sound.beep()
 
 RightColorSensor = ColorSensor(INPUT_4)
 LeftColorSensor = ColorSensor(INPUT_1)
-#JunctionColorSensor = LightSensor(INPUT_2)
 
-#gyr = GyroSensor(INPUT_2)
 
 TurnState = False
 
 FRONT = 0
 RIGHT = 1
 LEFT = 2
-solution = "lllluuxddllurrrrrrxdruuuxruulldrrrxdldllullxuulldrrxurdddxullddxrrxdrrrrxdruuuxruurrdllxulddxulldrrxddlllluurddxldrrrrxdruuuxdlllldllurrrrrrxdruu"  # Læs fra Planner   
-solution_pre_def = "lllluUxddllurRRRRRxdruUUxruulldrRRxdldllulLxuulldrRxurdDDxulldDxrRxdrRRRxdruUUxruurrdlLxuldDxulldrRxddlllluurdDxldrRRRxdruUUxdlllldllurRRRRRxdruU"
-commands = "uUxlurRxurdDxrdlLxdl"
+#solution = "lllluuxddllurrrrrrxdruuuxruulldrrrxdldllullxuulldrrxurdddxullddxrrxdrrrrxdruuuxruurrdllxulddxulldrrxddlllluurddxldrrrrxdruuuxdlllldllurrrrrrxdruu"  # Læs fra Planner   
+#solution_pre_def = "lllluUxddllurRRRRRxdruUUxruulldrRRxdldllulLxuulldrRxurdDDxulldDxrRxdrRRRxdruUUxruurrdlLxuldDxulldrRxddlllluurdDxldrRRRxdruUUxdlllldllurRRRRRxdruU"
+#commands = "uUxlurRxurdDxrdlLxdl"
+#commands = "ulurrddlu"
+#commands = "uuxuuxuux"
+commands = "udududududududududududududududu"
 orientation = 'u'   # -> orientation == commands[i]
 n = len(commands)
 i = 0
@@ -81,12 +95,13 @@ i = 0
 
 
 while i < n:
-   # print("JunctionColorSensor: "+str(JunctionColorSensor.reflected_light_intensity))
-    # Read value of junction detect sensor
+        # Read value of junction detect sensor
     SHIFT_REG = LineFollower.DetectJunctionDouble(LeftColorSensor, RightColorSensor)
-    #SHIFT_REG = LineFollower.DetectJunctionSingle(JunctionColorSensor, threshold=50)
 
-    # Detect if there is a rising edge on "black" signal
+        # Read next commmand
+    command = commands[i]
+
+        # Detect if there is a rising edge on "black" signal
     if SHIFT_REG == 1 and PREV_SHIFT_REG == 0:
         FLAG_RE = True
     else:
@@ -105,15 +120,13 @@ while i < n:
             if ( commands[i] != 'x' ):
                 LineFollower.DriveRotations(rot=0.25) # kør en lille smule -> robotten står på junction
             substate = 0
-        sound.beep()
+        #sound.beep()
 
-    
-    # Read next commmand
-    command = commands[i]
+
 
     if ( ord(command) >= 65 and ord(command) <= 90 ):
         if ( command.lower() == orientation ):
-            LineFollower.DriveRotations(rot=1)
+            LineFollower.DriveRotations(rot=1.2)
             i = i + 1 # It will not see a junction -> increment
         else:
             TurnChar = TurnDirection(orientation, command.lower())
@@ -122,7 +135,7 @@ while i < n:
             orientation = Turn(TurnChar, orientation)
     elif ( command == orientation and ord(command) > 90 ):
         # Kør lige ud
-        LineFollower.BounceFollow(BINARY_CONTROL=False, max_speed=80, speed_reduction = 30) # max_speed = 50
+        LineFollower.BounceFollow(BINARY_CONTROL=False, max_speed=60, speed_reduction = 30) # max_speed = 50
     elif( command == 'x' ): # Go backwards
         LineFollower.GoBackwards()
     else:
@@ -130,34 +143,67 @@ while i < n:
         TurnChar = TurnDirection(orientation, command)
         if ( TurnChar == 'o' ):
             print("ERROR: invalid turn char")
-        orientation = Turn(TurnChar, orientation)
+        #orientation = Turn(TurnChar, orientation)
+        orientation = Turn2(TurnChar, orientation)
 
     PREV_SHIFT_REG = SHIFT_REG
 
-    
+
+####################################################################33
+
+
+# while i < n:
+#    # print("JunctionColorSensor: "+str(JunctionColorSensor.reflected_light_intensity))
+#     # Read value of junction detect sensor
+#     SHIFT_REG = LineFollower.DetectJunctionDouble(LeftColorSensor, RightColorSensor)
+#     #SHIFT_REG = LineFollower.DetectJunctionSingle(JunctionColorSensor, threshold=50)
+
+#         # Read next commmand
+#     command = commands[i]
+
+#     # Detect if there is a rising edge on "black" signal
+#     if SHIFT_REG == 1 and PREV_SHIFT_REG == 0:
+#         FLAG_RE = True
+#     else:
+#         FLAG_RE = False
+
+#     # Stop motors and move to next command if a junction has been detected
+#     if FLAG_RE and not(ignoreShift):
+#         i = i + 1
+#         if ( i >= len(commands) ):
+#             LineFollower.StopMotors()
+#             while True:
+#                 sound.beep()
+
+#         if (command != commands[i] and command != commands[i].lower()): # previous != current (command)
+#             LineFollower.StopMotors()
+#             if ( commands[i] != 'x' ):
+#                 LineFollower.DriveRotations(rot=0.25) # kør en lille smule -> robotten står på junction
+#             substate = 0
+#         sound.beep()
 
 
 
+#     if ( ord(command) >= 65 and ord(command) <= 90 ):
+#         if ( command.lower() == orientation ):
+#             LineFollower.DriveRotations(rot=1.2)
+#             i = i + 1 # It will not see a junction -> increment
+#         else:
+#             TurnChar = TurnDirection(orientation, command.lower())
+#             if ( TurnChar == 'o' ):
+#                 print("ERROR: invalid turn char")
+#             orientation = Turn(TurnChar, orientation)
+#     elif ( command == orientation and ord(command) > 90 ):
+#         # Kør lige ud
+#         LineFollower.BounceFollow(BINARY_CONTROL=False, max_speed=60, speed_reduction = 30) # max_speed = 50
+#     elif( command == 'x' ): # Go backwards
+#         LineFollower.GoBackwards()
+#     else:
+#         # Drej indtil den vender i korrekt retning
+#         TurnChar = TurnDirection(orientation, command)
+#         if ( TurnChar == 'o' ):
+#             print("ERROR: invalid turn char")
+#         #orientation = Turn(TurnChar, orientation)
+#         orientation = Turn2(TurnChar, orientation)
 
-    # If command is equal to FRONT move forward
-    #if ( command == 'u' ):
-        #LineFollower.SimpleFollower(SAFE_MODE=True)
-        #LineFollower.BounceFollow()
-
-    # If command is equal to RIGHT turn right
-    #if ( command == 'r' ):
-        #if ( substate == 0 ):
-            #ignoreShift = True
-    #        LineFollower.DriveRotations(rot=0.2)
-    #        LineFollower.TurnOnSpot(45)
-    #        substate = 1
-    #    if ( substate == 1 ):
-    #        ignoreShift = False
-    #        LineFollower.TurnRight(speed=20, difference=8)
-    #        if ( cs_front.color == ColorSensor.COLOR_BLACK ):
-    #            LineFollower.StopMotors()
-    #            i = i + 1
-    #            substate = 0
-
-    # load shift reg val into previous shift reg val
-
+#     PREV_SHIFT_REG = SHIFT_REG
