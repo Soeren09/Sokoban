@@ -6,19 +6,6 @@ from ev3dev2.wheel import EV3Tire
 from ev3dev2.sound import Sound
 import math
 
-
-class EV3Controller:
-  def __init__(self, ):
-    self.name = name
-    self.age = age
-
-    self.LeftMotor = LargeMotor(OUTPUT_B)
-    self.RightMotor = LargeMotor(OUTPUT_C)
-    
-    self.LeftSensor = ColorSensor(INPUT_1)
-    self.RightSensor = ColorSensor(INPUT_4)
-
-
 #LEFT_MOTOR = OUTPUT_B
 #RIGHT_MOTOR = OUTPUT_C
 
@@ -28,90 +15,137 @@ class EV3Controller:
 #LeftMotor = LargeMotor(LEFT_MOTOR)
 #RightMotor = LargeMotor(RIGHT_MOTOR)
 
-tankControl = MoveTank(LEFT_MOTOR, RIGHT_MOTOR)
+
+# Sætter motorer op: 
+# mA = ev3.LargeMotor('outA')
+# mA.run_direct()
+# mA.polarity = "inversed"
+
+# Når vi ser linjen: 
+# if ((not saw_line) & (lC.value() < LIGHT_THRESHOLD)):
+#             saw_line = True
+#             line_time = timer()
+#             mA.position = 0
+#             mB.position = 0 
+
+# Vi sætter position til 0, fordi det skal man åbenbart for at det virker optimalt
+
+# Når vi har set en linje kører vi lidt frem:
+#         if (saw_line & (mA.position+mB.position > 500)):
+#             saw_line = False
+#             step += 1
+#             integral = 0
+#             last_error = lB.value() - lA.value()
+
+#             Drej til højre: 
+#         mA.duty_cycle_sp = -75
+#         mB.duty_cycle_sp = 75
+#         mA.duty_cycle_sp = -75
+#         mB.duty_cycle_sp = 75
+#         mA.position = 0
+#         mB.position = 0
+#         while ((mA.position > -200) & (mB.position < 200)):
+#             pass
+
+#         while lA.value() > BLACK_THRESHOLD:
+#             mA.duty_cycle_sp = -30 #0
+#             mB.duty_cycle_sp = 30 #45
 
 
 
-def SetDutycycle(DutycycleLeft, DutycycleRight):
-    LeftMotor.duty_cycle_sp = DutycycleLeft
-    RightMotor.duty_cycle_sp = DutycycleRight
+class EV3Controller:
+    def __init__(self):
+        self.LeftMotor = LargeMotor(OUTPUT_B)
+        self.RightMotor = LargeMotor(OUTPUT_C)
 
-    # Control motor speed
-    LeftMotor.command = Motor.COMMAND_RUN_DIRECT
-    RightMotor.command = Motor.COMMAND_RUN_DIRECT
+            # Run mode
+        self.LeftMotor.run_direct()
+        self.RightMotor.run_direct() 
 
-def StopMotors():
-    LeftMotor.stop_action = Motor.STOP_ACTION_HOLD     # HOLD
-    RightMotor.stop_action = Motor.STOP_ACTION_HOLD    # HOLD
-    LeftMotor.command = Motor.COMMAND_STOP
-    RightMotor.command = Motor.COMMAND_STOP
+            # Stop mode
+        self.LeftMotor.stop_action = LargeMotor.STOP_ACTION_HOLD     # HOLD
+        self.RightMotor.stop_action = LargeMotor.STOP_ACTION_HOLD    # HOLD
 
+        self.LeftSensor = ColorSensor(INPUT_1)
+        self.RightSensor = ColorSensor(INPUT_4)
 
-def TurnOnSpot(degree):
-    WHEEL_DISTANCE = 85 # 115
-    DiffControl = MoveDifferential(LEFT_MOTOR, RIGHT_MOTOR, EV3Tire, WHEEL_DISTANCE)
-    if ( degree > 0 ):
-        DiffControl.turn_right(SpeedPercent(15),int(degree))
-    else:
-        DiffControl.turn_left(SpeedPercent(15),int(degree))
-    #DiffControl.on_arc_right(SpeedPercent(15), 150, 70000)
+    
+    def DetectJunctionDouble(self, threshold=30):
+        # Both sensors see black?
+        if (self.LeftSensor.reflected_light_intensity < threshold and self.RightSensor.reflected_light_intensity < threshold): # 30 is "ok"
+            return True
+        return False
 
 
-def TurnOnSpotSensor(TurnChar, TurnSpeed = 50):
-        # WHITE = 100   # BLACK = 0
-    LeftIntensity = LeftSensor.reflected_light_intensity
-    RightIntensity = RightSensor.reflected_light_intensity
+    def SetDutycycle(self, DutycycleLeft, DutycycleRight):
+        self.LeftMotor.duty_cycle_sp = DutycycleLeft
+        self.RightMotor.duty_cycle_sp = DutycycleRight
 
-    if TurnChar == 'r': # Turn right
-        SetDutycycle(TurnSpeed, -TurnSpeed)
-
-        while ( LeftIntensity > 20  ):  
-            LeftIntensity = LeftSensor.reflected_light_intensity
-
-        while ( RightIntensity > 20  ):  
-            RightIntensity = RightSensor.reflected_light_intensity
+            # Control motor speed
+        #self.LeftMotor.command = LargeMotor.COMMAND_RUN_DIRECT
+        #self.RightMotor.command = LargeMotor.COMMAND_RUN_DIRECT
+    
+    def DrivePos(self, pos, speed=30):
+        self.LeftMotor.position = 0
+        self.RightMotor.position = 0
             
-        while ( LeftIntensity > 30  ):  
-            LeftIntensity = LeftSensor.reflected_light_intensity
+        self.SetDutycycle(speed, speed)
 
-    if TurnChar == 'l': # Turn left
-        SetDutycycle(-TurnSpeed, TurnSpeed)
+        while ((abs(self.LeftMotor.position) < pos) & (abs(self.RightMotor.position) < pos)):
+            pass
 
-        while ( RightIntensity > 20  ):  
-            RightIntensity = RightSensor.reflected_light_intensity
+        self.SetDutycycle(0,0)
+  
+    def StopMotors(self):
+        self.SetDutycycle(0,0)
+        self.LeftMotor.command = LargeMotor.COMMAND_STOP
+        self.RightMotor.command = LargeMotor.COMMAND_STOP
 
-        while ( LeftIntensity > 20  ):  
-            LeftIntensity = LeftSensor.reflected_light_intensity
-            
-        while ( RightIntensity > 30  ):  
-            RightIntensity = RightSensor.reflected_light_intensity
+    def TurnOnSpotSensor(self, TurnChar, TurnSpeed = 30):
+            # WHITE = 100   # BLACK = 0
+        LeftIntensity = self.LeftSensor.reflected_light_intensity
+        RightIntensity = self.RightSensor.reflected_light_intensity
+
+        if TurnChar == 'r': # Turn right
+            self.SetDutycycle(TurnSpeed, -TurnSpeed)
+
+            while ( LeftIntensity > 15  ):  
+                LeftIntensity = self.LeftSensor.reflected_light_intensity
+
+            while ( RightIntensity > 20  ):  
+                RightIntensity = self.RightSensor.reflected_light_intensity
+                
+            while ( LeftIntensity > 20  ):  
+                LeftIntensity = self.LeftSensor.reflected_light_intensity
+
+        if TurnChar == 'l': # Turn left
+            self.SetDutycycle(-TurnSpeed, TurnSpeed)
+
+            while ( RightIntensity > 15  ):  
+                RightIntensity = self.RightSensor.reflected_light_intensity
+
+            while ( LeftIntensity > 20  ):  
+                LeftIntensity = self.LeftSensor.reflected_light_intensity
+                
+            while ( RightIntensity > 20  ):  
+                RightIntensity = self.RightSensor.reflected_light_intensity
 
 
-def DriveRotations(rot=1):  # Speed value cannot exceed 30! This will Make the robot shaky and make it faulty!
-    tankControl.on_for_rotations(SpeedPercent(30), SpeedPercent(30), rot)
+    def BounceFollow(self, max_speed=50, speed_reduction = 25):
+            # WHITE = 100
+            # BLACK = 0
+        LeftIntensity = self.LeftSensor.reflected_light_intensity
+        RightIntensity = self.RightSensor.reflected_light_intensity
 
+        # QUICK FIX - LAV OM
+        if ( LeftIntensity > 60 and RightIntensity > 60 ):
+            LeftIntensity = 60
+            RightIntensity = 60
 
-def DetectJunctionDouble(ColorSensorLeft = LeftSensor, ColorSensorRight = RightSensor, threshold=30):
-    # Both sensors see black?
-    if (ColorSensorLeft.reflected_light_intensity < threshold and ColorSensorRight.reflected_light_intensity < threshold): # 30 is "ok"
-        return True
-    return False
+        leftDutycycle = max_speed - (1 - LeftIntensity/(LeftIntensity + RightIntensity)) * speed_reduction
+        rightDutycycle =  max_speed - (1 - RightIntensity/(LeftIntensity + RightIntensity)) * speed_reduction
 
-def BounceFollow(max_speed=50, speed_reduction = 25):
-        # WHITE = 100
-        # BLACK = 0
-    LeftIntensity = LeftSensor.reflected_light_intensity
-    RightIntensity = RightSensor.reflected_light_intensity
-
-    # QUICK FIX - LAV OM
-    if ( LeftIntensity > 60 and RightIntensity > 60 ):
-        LeftIntensity = 60
-        RightIntensity = 60
-
-    leftDutycycle = max_speed - (1 - LeftIntensity/(LeftIntensity + RightIntensity)) * speed_reduction
-    rightDutycycle =  max_speed - (1 - RightIntensity/(LeftIntensity + RightIntensity)) * speed_reduction
-
-    SetDutycycle(leftDutycycle, rightDutycycle)
+        self.SetDutycycle(leftDutycycle, rightDutycycle)
 
 
 
@@ -151,7 +185,14 @@ def BounceFollow(max_speed=50, speed_reduction = 25):
 
 
 
-
+    # def TurnOnSpot(self, degree):
+    #     WHEEL_DISTANCE = 85 # 115
+    #     DiffControl = MoveDifferential(LEFT_MOTOR, RIGHT_MOTOR, EV3Tire, WHEEL_DISTANCE)
+    #     if ( degree > 0 ):
+    #         DiffControl.turn_right(SpeedPercent(15),int(degree))
+    #     else:
+    #         DiffControl.turn_left(SpeedPercent(15),int(degree))
+    #     #DiffControl.on_arc_right(SpeedPercent(15), 150, 70000)
 
 
 
