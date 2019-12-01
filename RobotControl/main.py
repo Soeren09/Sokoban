@@ -13,9 +13,13 @@ from ev3dev2.sensor.lego import ColorSensor
 #commands = "uuxlurrxurddxrdllxdluuxlurrxurddxrdllxdluuxlurrxurddxrdllxdl"
 #commands = "uUxlurRxurdDxrdlLxdl"
 #commands = "ulururdrdldl"
-commands = "uxlxuxlxuxlx"
+#commands = "uxlxuxlxuxlxuxlxuxlxuxlx"
 #commands = "urdlurdlurdl"
 #commands = "uuuullllddddrrrr"
+
+commands = "lllluuxddllurrrrrrxdruuuxruulldrrrxdldllullxuulldrrxurdddxullddxrrxdrrrrxdruuuxruurrdllxulddxulldrrxddlllluurddxldrrrrxdruuuxdlllldllurrrrrrxdruu"
+#commands = "uuxd"
+Push = False
 
 orientation = 'u'   # -> orientation == commands[i]
 n = len(commands)
@@ -39,7 +43,7 @@ def GetNewOrientation(TurnChar, orientation):
         orientation = RotationChars[(RotationChars.find(orientation) + len(RotationChars) - 1) % len(RotationChars)]
     return orientation
 
-def TurnDirection(command, orientation):
+def TurnDirection(command, orientation): # return shortest turn direction
     # return 'r' or 'l' to represent a left turn or right turn    'o' represents no turn needed
     if ( orientation == command ):
         return 'o'
@@ -70,21 +74,20 @@ def Turn90(command, orientation, ev3):
     if ( TurnChar == 'o' ):
         print("ERROR: invalid turn char")
 
-    ev3.TurnOnSpotSensor(TurnChar)     
+    ev3.TurnOnSpotSensor(TurnChar)
 
     return GetNewOrientation(TurnChar, orientation)
 
 def Turn180(orientation, ev3):
-    Robot.DrivePos(pos=80, speed = -30)
+    Robot.DrivePos(pos=140, speed = -30)
     Robot.TurnOnSpotSensor('l')  # Turn 180 degree
-    orientation = GetNewOrientation('l', orientation )  # Corret orientation
+    orientation = GetNewOrientation('l', orientation )  # Correct orientation
     orientation = GetNewOrientation('l', orientation )
     return orientation
 
 Robot = EV3Controller()
 
 #Robot.DrivePos(pos= 90, speed = 60)
-
 while i < n:
         # Read value of junction detect sensor
     SHIFT_REG = Robot.DetectJunctionDouble()
@@ -103,6 +106,11 @@ while i < n:
             Robot.StopMotors()
             while True:
                 sound.beep()
+        else:
+            if ( commands[i+1] == 'x' ):
+                Push = True
+            else:
+                Push = False
 
         if (command != commands[i] and command != commands[i].lower()): # previous != current (command)
             Robot.StopMotors
@@ -112,12 +120,15 @@ while i < n:
         # Read next commmand
     command = commands[i]
 
-    if ( (command == orientation and ord(command) > 90) or FLAG_PUSH ):        # Kør lige ud
-        Robot.BounceFollow( max_speed=80, speed_reduction = 30)
+    if ( ((command == orientation and ord(command) > 90) or FLAG_PUSH ) and not Push):        # Kør lige ud
+        Robot.BounceFollow( max_speed=90, speed_reduction = 40)
 
-    elif( command == 'x' ): # Drive back to preveious intersection 
+    elif( command == 'x' ): # Drive back to previous intersection 
         orientation = Turn180(orientation, Robot)
         FLAG_PUSH = True    # Drive straight.
+
+    elif ( command == orientation and Push ):
+        Robot.BounceFollow( max_speed=70, speed_reduction = 70)
 
     else:   # Drej indtil den vender i korrekt retning
         orientation = Turn90(command, orientation, Robot)

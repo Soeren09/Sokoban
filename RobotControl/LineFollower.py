@@ -55,6 +55,10 @@ import math
 
 class EV3Controller:
     def __init__(self):
+        WHEEL_DISTANCE = 85 # 115
+        self.DiffControl = MoveDifferential(OUTPUT_B, OUTPUT_C, EV3Tire, WHEEL_DISTANCE)
+        
+
         self.LeftMotor = LargeMotor(OUTPUT_B)
         self.RightMotor = LargeMotor(OUTPUT_C)
 
@@ -82,8 +86,8 @@ class EV3Controller:
         self.RightMotor.duty_cycle_sp = DutycycleRight
 
             # Control motor speed
-        #self.LeftMotor.command = LargeMotor.COMMAND_RUN_DIRECT
-        #self.RightMotor.command = LargeMotor.COMMAND_RUN_DIRECT
+        self.LeftMotor.command = LargeMotor.COMMAND_RUN_DIRECT
+        self.RightMotor.command = LargeMotor.COMMAND_RUN_DIRECT
     
     def DrivePos(self, pos, speed=30):
         self.LeftMotor.position = 0
@@ -101,7 +105,13 @@ class EV3Controller:
         self.LeftMotor.command = LargeMotor.COMMAND_STOP
         self.RightMotor.command = LargeMotor.COMMAND_STOP
 
-    def TurnOnSpotSensor(self, TurnChar, TurnSpeed = 30):
+    def TurnOnSpot(self, degree):
+        if ( degree > 0 ):
+            self.DiffControl.turn_right(SpeedPercent(15),int(degree))
+        else:
+            self.DiffControl.turn_left(SpeedPercent(15),int(degree))
+
+    def TurnOnSpotSensor(self, TurnChar, TurnSpeed = 40):
             # WHITE = 100   # BLACK = 0
         LeftIntensity = self.LeftSensor.reflected_light_intensity
         RightIntensity = self.RightSensor.reflected_light_intensity

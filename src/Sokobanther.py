@@ -198,12 +198,12 @@ lastYearMap = """\
 #   ###
 #####"""
 
-#init(map_2019)
-#solution = solve(dynamicdata, staticdata, playerx, playery)
-#print(len(solution))
-#print(solution)
+init(map_2019)
+solution = solve(dynamicdata, staticdata, playerx, playery)
+print(len(solution))
+print(solution)
 
-solution = "llllUddlluRRRRRdrUUruulldRRdldlluLuulldRurDDullDRdRRRdrUUruurrdLulDulldRddlllluurDldRRRdrUUdlllldlluRRRRRdrU"
+#solution = "llllUddlluRRRRRdrUUruulldRRdldlluLuulldRurDDullDRdRRRdrUUruurrdLulDulldRddlllluurDldRRRdrUUdlllldlluRRRRRdrU"
 # error in code below -> correct it.
 print(solution)
 def translateCommand(commands): # no predined
@@ -237,12 +237,12 @@ def translateCommandPreDef(commands): # using predefined push length
     for i in range(len(commands)):
         if ( ord(commands[i]) >= 65 and ord(commands[i]) <= 90 ):
             if ( prev_is_upper and prev_command == commands[i] ): # upper and equal to last -> for consecutive uppers add 1
-                translated += commands[i]
+                translated += commands[i].lower()
                 prev_is_upper = True
                 prev_command = commands[i]
             else: ## Upper not equal to last -> first upper add 2
                 translated += commands[i].lower()
-                translated += commands[i]
+                translated += commands[i].lower()
                 prev_is_upper = True
                 prev_command = commands[i]
             # check if current is last push -> add x (reverse)
