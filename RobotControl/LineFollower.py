@@ -6,57 +6,11 @@ from ev3dev2.wheel import EV3Tire
 from ev3dev2.sound import Sound
 import math
 
-#LEFT_MOTOR = OUTPUT_B
-#RIGHT_MOTOR = OUTPUT_C
-
-#LeftSensor = ColorSensor(INPUT_1)
-#RightSensor = ColorSensor(INPUT_4)
-
-#LeftMotor = LargeMotor(LEFT_MOTOR)
-#RightMotor = LargeMotor(RIGHT_MOTOR)
-
-
-# Sætter motorer op: 
-# mA = ev3.LargeMotor('outA')
-# mA.run_direct()
-# mA.polarity = "inversed"
-
-# Når vi ser linjen: 
-# if ((not saw_line) & (lC.value() < LIGHT_THRESHOLD)):
-#             saw_line = True
-#             line_time = timer()
-#             mA.position = 0
-#             mB.position = 0 
-
-# Vi sætter position til 0, fordi det skal man åbenbart for at det virker optimalt
-
-# Når vi har set en linje kører vi lidt frem:
-#         if (saw_line & (mA.position+mB.position > 500)):
-#             saw_line = False
-#             step += 1
-#             integral = 0
-#             last_error = lB.value() - lA.value()
-
-#             Drej til højre: 
-#         mA.duty_cycle_sp = -75
-#         mB.duty_cycle_sp = 75
-#         mA.duty_cycle_sp = -75
-#         mB.duty_cycle_sp = 75
-#         mA.position = 0
-#         mB.position = 0
-#         while ((mA.position > -200) & (mB.position < 200)):
-#             pass
-
-#         while lA.value() > BLACK_THRESHOLD:
-#             mA.duty_cycle_sp = -30 #0
-#             mB.duty_cycle_sp = 30 #45
-
-
 
 class EV3Controller:
     def __init__(self):
         WHEEL_DISTANCE = 85 # 115
-        self.DiffControl = MoveDifferential(OUTPUT_B, OUTPUT_C, EV3Tire, WHEEL_DISTANCE)
+        #self.DiffControl = MoveDifferential(OUTPUT_B, OUTPUT_C, EV3Tire, WHEEL_DISTANCE)
         
 
         self.LeftMotor = LargeMotor(OUTPUT_B)
@@ -75,6 +29,7 @@ class EV3Controller:
 
     
     def DetectJunctionDouble(self, threshold=30):
+        
         # Both sensors see black?
         if (self.LeftSensor.reflected_light_intensity < threshold and self.RightSensor.reflected_light_intensity < threshold): # 30 is "ok"
             return True
@@ -105,41 +60,59 @@ class EV3Controller:
         self.LeftMotor.command = LargeMotor.COMMAND_STOP
         self.RightMotor.command = LargeMotor.COMMAND_STOP
 
-    def TurnOnSpot(self, degree):
-        if ( degree > 0 ):
-            self.DiffControl.turn_right(SpeedPercent(15),int(degree))
-        else:
-            self.DiffControl.turn_left(SpeedPercent(15),int(degree))
+    #def TurnOnSpot(self, degree):
+    #    if ( degree > 0 ):
+    #        self.DiffControl.turn_right(SpeedPercent(15),int(degree))
+    #    else:
+    #        self.DiffControl.turn_left(SpeedPercent(15),int(degree))
 
-    def TurnOnSpotSensor(self, TurnChar, TurnSpeed = 40):
+    def TurnOnSpotSensor(self, TurnChar, TurnSpeed = 30):
             # WHITE = 100   # BLACK = 0
-        LeftIntensity = self.LeftSensor.reflected_light_intensity
-        RightIntensity = self.RightSensor.reflected_light_intensity
+        #LeftIntensity = self.LeftSensor.reflected_light_intensity
+        #RightIntensity = self.RightSensor.reflected_light_intensity
 
         if TurnChar == 'r': # Turn right
             self.SetDutycycle(TurnSpeed, -TurnSpeed)
 
-            while ( LeftIntensity > 15  ):  
-                LeftIntensity = self.LeftSensor.reflected_light_intensity
+            #LeftIntensity = 100
+            while ( self.LeftSensor.reflected_light_intensity > 15  ):
+                pass  
+                #LeftIntensity = self.LeftSensor.reflected_light_intensity
+                #RightIntensity = self.RightSensor.reflected_light_intensity
 
-            while ( RightIntensity > 20  ):  
-                RightIntensity = self.RightSensor.reflected_light_intensity
+            #RightIntensity = 100
+            while ( self.RightSensor.reflected_light_intensity > 20  ):
+                pass  
+                #LeftIntensity = self.LeftSensor.reflected_light_intensity
+                #RightIntensity = self.RightSensor.reflected_light_intensity
                 
-            while ( LeftIntensity > 20  ):  
-                LeftIntensity = self.LeftSensor.reflected_light_intensity
+            #LeftIntensity = 100
+            while ( self.LeftSensor.reflected_light_intensity > 20  ):
+                pass  
+                #LeftIntensity = self.LeftSensor.reflected_light_intensity
+                #RightIntensity = self.RightSensor.reflected_light_intensity
 
         if TurnChar == 'l': # Turn left
             self.SetDutycycle(-TurnSpeed, TurnSpeed)
 
-            while ( RightIntensity > 15  ):  
-                RightIntensity = self.RightSensor.reflected_light_intensity
+            #RightIntensity = 100
+            while ( self.RightSensor.reflected_light_intensity > 15  ):
+                pass  
+                #LeftIntensity = self.LeftSensor.reflected_light_intensity
+                #RightIntensity = self.RightSensor.reflected_light_intensity
 
-            while ( LeftIntensity > 20  ):  
-                LeftIntensity = self.LeftSensor.reflected_light_intensity
-                
-            while ( RightIntensity > 20  ):  
-                RightIntensity = self.RightSensor.reflected_light_intensity
+            #LeftIntensity = 100
+            while ( self.LeftSensor.reflected_light_intensity > 20  ):
+                pass  
+                #LeftIntensity = self.LeftSensor.reflected_light_intensity
+                #RightIntensity = self.RightSensor.reflected_light_intensity
 
+            #RightIntensity = 100
+            while ( self.RightSensor.reflected_light_intensity > 20  ):
+                pass  
+                #LeftIntensity = self.LeftSensor.reflected_light_intensity
+                #RightIntensity = self.RightSensor.reflected_light_intensity
+        self.StopMotors()
 
     def BounceFollow(self, max_speed=50, speed_reduction = 25):
             # WHITE = 100
@@ -156,53 +129,3 @@ class EV3Controller:
         rightDutycycle =  max_speed - (1 - RightIntensity/(LeftIntensity + RightIntensity)) * speed_reduction
 
         self.SetDutycycle(leftDutycycle, rightDutycycle)
-
-
-
-
-
-## Not used 
-
-
-# def DetectJunctionSingle(JunctionColorSensor, threshold = 20):
-#     if ( JunctionColorSensor.reflected_light_intensity < threshold ):
-#         return True
-#     return False
-
-# def TurnRight(speed=20, difference=5):
-#     LeftMotor = Motor(LEFT_MOTOR)
-#     RightMotor = Motor(RIGHT_MOTOR)
-#     LeftMotor.duty_cycle_sp = speed
-#     RightMotor.duty_cycle_sp = -(speed - difference)
-#     LeftMotor.command = "run-direct"
-#     RightMotor.command = "run-direct"
-
-# def SimpleFollower(SAFE_MODE=True):    # Kører på venstre side af stregen: én sensor i midten.
-#     BASE_SPEED = 40 + 20*int(not(SAFE_MODE)) # 60  40       40 (kan tage blødt sving)
-#     DIFFERENCE = 5  + 3 *int(not(SAFE_MODE)) # 8   5       35
-#     cs = ColorSensor(INPUT_1)
-#     LeftMotor = Motor(LEFT_MOTOR)
-#     RightMotor = Motor(RIGHT_MOTOR)
-#     if (cs.color == ColorSensor.COLOR_BLACK):
-#         LeftMotor.duty_cycle_sp = BASE_SPEED - DIFFERENCE
-#         RightMotor.duty_cycle_sp = BASE_SPEED
-#     else:
-#         LeftMotor.duty_cycle_sp = BASE_SPEED
-#         RightMotor.duty_cycle_sp = BASE_SPEED - DIFFERENCE
-#     LeftMotor.command = Motor.COMMAND_RUN_DIRECT
-#     RightMotor.command = Motor.COMMAND_RUN_DIRECT
-
-
-
-
-    # def TurnOnSpot(self, degree):
-    #     WHEEL_DISTANCE = 85 # 115
-    #     DiffControl = MoveDifferential(LEFT_MOTOR, RIGHT_MOTOR, EV3Tire, WHEEL_DISTANCE)
-    #     if ( degree > 0 ):
-    #         DiffControl.turn_right(SpeedPercent(15),int(degree))
-    #     else:
-    #         DiffControl.turn_left(SpeedPercent(15),int(degree))
-    #     #DiffControl.on_arc_right(SpeedPercent(15), 150, 70000)
-
-
-

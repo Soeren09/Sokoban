@@ -1,25 +1,11 @@
 #!/usr/bin/env python3
 
-import time
 from LineFollower import EV3Controller 
-
 from ev3dev2.sound import Sound
-from ev3dev2.sensor import INPUT_1, INPUT_2, INPUT_3, INPUT_4
-from ev3dev2.sensor.lego import ColorSensor
-
-#solution = "lllluuxddllurrrrrrxdruuuxruulldrrrxdldllullxuulldrrxurdddxullddxrrxdrrrrxdruuuxruurrdllxulddxulldrrxddlllluurddxldrrrrxdruuuxdlllldllurrrrrrxdruu"  # Læs fra Planner   
-#solution_pre_def = "lllluUxddllurRRRRRxdruUUxruulldrRRxdldllulLxuulldrRxurdDDxulldDxrRxdrRRRxdruUUxruurrdlLxuldDxulldrRxddlllluurdDxldrRRRxdruUUxdlllldllurRRRRRxdruU"
-
-#commands = "uuxlurrxurddxrdllxdluuxlurrxurddxrdllxdluuxlurrxurddxrdllxdl"
-#commands = "uUxlurRxurdDxrdlLxdl"
-#commands = "ulururdrdldl"
-#commands = "uxlxuxlxuxlxuxlxuxlxuxlx"
-#commands = "urdlurdlurdl"
-#commands = "uuuullllddddrrrr"
 
 commands = "lllluuxddllurrrrrrxdruuuxruulldrrrxdldllullxuulldrrxurdddxullddxrrxdrrrrxdruuuxruurrdllxulddxulldrrxddlllluurddxldrrrrxdruuuxdlllldllurrrrrrxdruu"
-#commands = "uuxd"
 Push = False
+
 
 orientation = 'u'   # -> orientation == commands[i]
 n = len(commands)
@@ -79,7 +65,7 @@ def Turn90(command, orientation, ev3):
     return GetNewOrientation(TurnChar, orientation)
 
 def Turn180(orientation, ev3):
-    Robot.DrivePos(pos=140, speed = -30)
+    Robot.DrivePos(pos=140, speed = -30)                                                                            # Prev -30
     Robot.TurnOnSpotSensor('l')  # Turn 180 degree
     orientation = GetNewOrientation('l', orientation )  # Correct orientation
     orientation = GetNewOrientation('l', orientation )
@@ -106,9 +92,9 @@ while i < n:
             Robot.StopMotors()
             while True:
                 sound.beep()
-        else:
+        elif ( i + 2 < len(commands) ):
             if ( commands[i+1] == 'x' ):
-                Push = True
+                Push = False # True: if faster
             else:
                 Push = False
 
@@ -121,35 +107,16 @@ while i < n:
     command = commands[i]
 
     if ( ((command == orientation and ord(command) > 90) or FLAG_PUSH ) and not Push):        # Kør lige ud
-        Robot.BounceFollow( max_speed=90, speed_reduction = 40)
+        Robot.BounceFollow( max_speed=70, speed_reduction = 40)                                                             #  Prev: (70)90, 40
 
     elif( command == 'x' ): # Drive back to previous intersection 
         orientation = Turn180(orientation, Robot)
         FLAG_PUSH = True    # Drive straight.
 
     elif ( command == orientation and Push ):
-        Robot.BounceFollow( max_speed=70, speed_reduction = 70)
+        Robot.BounceFollow( max_speed=70, speed_reduction = 70)                                                             # Prev: 70, 70
 
     else:   # Drej indtil den vender i korrekt retning
         orientation = Turn90(command, orientation, Robot)
 
     PREV_SHIFT_REG = SHIFT_REG
-
-
-
-
-
-
-
-    # This one use big letters
-
-    # if ( ord(command) >= 65 and ord(command) <= 90 ):   # If upper case letter
-    #     if ( command.lower() == orientation ):
-    #         LineFollower.DriveRotations(rot=1.4)
-    #         i = i + 1 # It will not see a junction -> increment
-    #     else:
-    #     #     TurnChar = TurnDirection(orientation, command.lower())
-    #     #     if ( TurnChar == 'o' ):
-    #     #         print("ERROR: invalid turn char")
-    #         orientation = Turn(command.lower(), orientation)
-    # elif ( (command == orientation and ord(command) > 90) or FLAG_PUSH ):
