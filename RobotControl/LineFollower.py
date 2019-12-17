@@ -10,7 +10,6 @@ import math
 class EV3Controller:
     def __init__(self):
         WHEEL_DISTANCE = 85 # 115
-        #self.DiffControl = MoveDifferential(OUTPUT_B, OUTPUT_C, EV3Tire, WHEEL_DISTANCE)
         
 
         self.LeftMotor = LargeMotor(OUTPUT_B)
@@ -60,56 +59,33 @@ class EV3Controller:
         self.LeftMotor.command = LargeMotor.COMMAND_STOP
         self.RightMotor.command = LargeMotor.COMMAND_STOP
 
-    #def TurnOnSpot(self, degree):
-    #    if ( degree > 0 ):
-    #        self.DiffControl.turn_right(SpeedPercent(15),int(degree))
-    #    else:
-    #        self.DiffControl.turn_left(SpeedPercent(15),int(degree))
-
     def TurnOnSpotSensor(self, TurnChar, TurnSpeed = 50, twist = 0):
         if TurnChar == 'r': # Turn right
             self.SetDutycycle(TurnSpeed, -TurnSpeed)
 
-            #LeftIntensity = 100
             while ( self.LeftSensor.reflected_light_intensity > 15  ):
                 pass  
-                #LeftIntensity = self.LeftSensor.reflected_light_intensity
-                #RightIntensity = self.RightSensor.reflected_light_intensity
 
-            #RightIntensity = 100
             while ( self.RightSensor.reflected_light_intensity > 20  ):
                 pass  
-                #LeftIntensity = self.LeftSensor.reflected_light_intensity
-                #RightIntensity = self.RightSensor.reflected_light_intensity
-                
-            #LeftIntensity = 100
+
             if (twist):
                 while ( self.LeftSensor.reflected_light_intensity > 40  ):
                     pass  
-                #LeftIntensity = self.LeftSensor.reflected_light_intensity
-                #RightIntensity = self.RightSensor.reflected_light_intensity
 
         if TurnChar == 'l': # Turn left
             self.SetDutycycle(-TurnSpeed, TurnSpeed)
 
-            #RightIntensity = 100
             while ( self.RightSensor.reflected_light_intensity > 15  ):
                 pass  
-                #LeftIntensity = self.LeftSensor.reflected_light_intensity
-                #RightIntensity = self.RightSensor.reflected_light_intensity
 
-            #LeftIntensity = 100
             while ( self.LeftSensor.reflected_light_intensity > 20  ):
                 pass  
-                #LeftIntensity = self.LeftSensor.reflected_light_intensity
-                #RightIntensity = self.RightSensor.reflected_light_intensity
 
-            #RightIntensity = 100
             if (twist):
                 while ( self.RightSensor.reflected_light_intensity > 40  ):
                     pass  
-                #LeftIntensity = self.LeftSensor.reflected_light_intensity
-                #RightIntensity = self.RightSensor.reflected_light_intensity
+
         self.StopMotors()
 
     def BounceFollow(self, max_speed=50, speed_reduction = 25):
