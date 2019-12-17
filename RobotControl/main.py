@@ -2,8 +2,15 @@
 
 from LineFollower import EV3Controller 
 from ev3dev2.sound import Sound
+import time
 
-commands = "lllluuxddllurrrrrrxdruuuxruulldrrrxdldllullxuulldrrxurdddxullddxrrxdrrrrxdruuuxruurrdllxulddxulldrrxddlllluurddxldrrrrxdruuuxdlllldllurrrrrrxdruu"
+#commands = "lllluuxddllurrrrrrxdruuuxruulldrrrxdldllullxuulldrrxurdddxullddxrrxdrrrrxdruuuxruurrdllxulddxulldrrxddlllluurddxldrrrrxdruuuxdlllldllurrrrrrxdruu"
+#commands = "uuuurrrrddddllll"
+#commands = "uuuurddddluuuurddddl"
+commands = "uuuuuxruuldddddxrddluuuuuxruuldddddxrddluuuuuxruuldddddxrddluuuuuxruuldddddxrddluuuuuxruuldddddxrddluuuuuxruuldddddxrddluuuuuxruuldddddxrddluuuuuxruuldddddxrddl"
+#commands = "urdluldrurdluldrurdluldr"
+#commands = "uuxlurrxurddxrdllxdl"
+#commands = "uuxdxuxdxuxdxuuxdxuxdxuxdxuuxdxuxdxuxdxuuxdxuxdxuxdxuuxdxuxdxuxdxuuxdxuxdxuxdxuuxdxuxdxuxdxuuxdxuxdxuxdx"
 Push = False
 
 
@@ -66,7 +73,7 @@ def Turn90(command, orientation, ev3):
 
 def Turn180(orientation, ev3):
     Robot.DrivePos(pos=140, speed = -30)                                                                            # Prev -30
-    Robot.TurnOnSpotSensor('l')  # Turn 180 degree
+    Robot.TurnOnSpotSensor('l', twist = 1)  # Turn 180 degree
     orientation = GetNewOrientation('l', orientation )  # Correct orientation
     orientation = GetNewOrientation('l', orientation )
     return orientation
@@ -91,7 +98,7 @@ while i < n:
         if ( i >= len(commands) ):
             Robot.StopMotors()
             while True:
-                sound.beep()
+                pass #sound.beep()
         elif ( i + 2 < len(commands) ):
             if ( commands[i+1] == 'x' ):
                 Push = False # True: if faster
@@ -107,14 +114,15 @@ while i < n:
     command = commands[i]
 
     if ( ((command == orientation and ord(command) > 90) or FLAG_PUSH ) and not Push):        # Kør lige ud
-        Robot.BounceFollow( max_speed=70, speed_reduction = 40)                                                             #  Prev: (70)90, 40
+        t0 = time.time()
+        Robot.BounceFollow( max_speed=65, speed_reduction = 40)   # Prev: 70, 70
+        print(time.time() - t0)
 
     elif( command == 'x' ): # Drive back to previous intersection 
         orientation = Turn180(orientation, Robot)
         FLAG_PUSH = True    # Drive straight.
-
     elif ( command == orientation and Push ):
-        Robot.BounceFollow( max_speed=70, speed_reduction = 70)                                                             # Prev: 70, 70
+        Robot.BounceFollow( max_speed=70, speed_reduction = 70)
 
     else:   # Drej indtil den vender i korrekt retning
         orientation = Turn90(command, orientation, Robot)

@@ -66,11 +66,7 @@ class EV3Controller:
     #    else:
     #        self.DiffControl.turn_left(SpeedPercent(15),int(degree))
 
-    def TurnOnSpotSensor(self, TurnChar, TurnSpeed = 30):
-            # WHITE = 100   # BLACK = 0
-        #LeftIntensity = self.LeftSensor.reflected_light_intensity
-        #RightIntensity = self.RightSensor.reflected_light_intensity
-
+    def TurnOnSpotSensor(self, TurnChar, TurnSpeed = 50, twist = 0):
         if TurnChar == 'r': # Turn right
             self.SetDutycycle(TurnSpeed, -TurnSpeed)
 
@@ -87,8 +83,9 @@ class EV3Controller:
                 #RightIntensity = self.RightSensor.reflected_light_intensity
                 
             #LeftIntensity = 100
-            while ( self.LeftSensor.reflected_light_intensity > 20  ):
-                pass  
+            if (twist):
+                while ( self.LeftSensor.reflected_light_intensity > 40  ):
+                    pass  
                 #LeftIntensity = self.LeftSensor.reflected_light_intensity
                 #RightIntensity = self.RightSensor.reflected_light_intensity
 
@@ -108,8 +105,9 @@ class EV3Controller:
                 #RightIntensity = self.RightSensor.reflected_light_intensity
 
             #RightIntensity = 100
-            while ( self.RightSensor.reflected_light_intensity > 20  ):
-                pass  
+            if (twist):
+                while ( self.RightSensor.reflected_light_intensity > 40  ):
+                    pass  
                 #LeftIntensity = self.LeftSensor.reflected_light_intensity
                 #RightIntensity = self.RightSensor.reflected_light_intensity
         self.StopMotors()
